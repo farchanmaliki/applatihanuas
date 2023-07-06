@@ -7,7 +7,6 @@ use Jenssegers\Blade\Blade;
 use Orm\Post;
 use Orm\User;
 
-
 class Welcome extends CI_Controller
 {
     /**
@@ -26,67 +25,81 @@ class Welcome extends CI_Controller
      * @see https://codeigniter.com/userguide3/general/urls.html
      */
     private $_blade;
-
-    // create construct
+    
     public function __construct()
     {
         parent::__construct();
         $this->_blade = new Blade(VIEWPATH, APPPATH . 'cache');
     }
-
+    
     private function _createView($view, $data)
     {
         echo $this->_blade->make($view, $data)->render();
     }
-
+    
     public function index()
     {
-        $avail_user = User::all();
-        $this->_createView('form',['avail_user' => $avail_user]);
+        $user = User::all();
+        $this->_createView('form', ['user_list' => $user]);
     }
 
     public function simpan()
     {
-        $user_id = $this->input->post('username');
-        $artikel = $this->input->post('artikel');
-
-       
-
-        $post = new Post();
-        $post->user_id = $user_id;
-        $post->artikel = $artikel;
-        $post->save();
+        
+        if ($this->input->post()){
+            $user_id = $this->input->post('user_id');
+            $article = $this->input->post('article');
+            $jenis = $this->input->post('radio');
+            
+            $post = new Post();
+    
+            $post->user_id = $user_id;
+            $post->article = $article;
+            $post->jenis = $jenis;
+            $post->save();
+        }
 
         redirect('Welcome/tampil');
     }
 
     public function hapus($id)
     {
-        $post = Post::find($id);
-        $post->delete();
-
+        $del = Post::find($id);
+        $del->delete();
+        
         redirect('Welcome/tampil');
     }
 
-    public function ubah($id)
+    public function edit($id)
     {
-        $avail_user = User::all();
         $post = Post::find($id);
-        $this->_createView('update', ['post' => $post,'avail_user' =>$avail_user]);
+        $users = User::all();
+
+        $jenis = 0;
+        if($post->jenis == 'Berita') $jenis = 0;
+        else if($post->jenis == 'Tutorial') $jenis = 1;
+        else if($post->jenis == 'Blog') $jenis = 2;
+
+        $this->_createView('update', ['post' => $post, 'users' => $users, 'jenis' => $jenis]);
     }
 
-    public function update($id){
+    public function update($id)
+    {
         $post = Post::find($id);
-        $post->user_id = $this->input->post('username');
-        $post->artikel = $this->input->post('artikel');
+        $post->user_id = $this->input->post('user_id');
+        $post->article = $this->input->post('article');
+        $post->jenis = $this->input->post('radio');
+
         $post->save();
 
         redirect('Welcome/tampil');
     }
 
+
     public function tampil()
     {
         $post_list = Post::all();
+
         $this->_createView('tampil', ['post_list' => $post_list]);
     }
 }
